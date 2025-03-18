@@ -27,4 +27,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE ${PORT:-8090}
 
 # Command to run the application
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8090}
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8090} --workers 4
