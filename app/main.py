@@ -35,10 +35,25 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Get Railway environment variables
+RAILWAY_PUBLIC_DOMAIN = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
+RAILWAY_SERVICE_NAME = os.getenv("RAILWAY_SERVICE_NAME", "")
+RAILWAY_ENVIRONMENT_NAME = os.getenv("RAILWAY_ENVIRONMENT_NAME", "")
+RAILWAY_PROJECT_NAME = os.getenv("RAILWAY_PROJECT_NAME", "")
+
 # Configure CORS
+allowed_origins = ALLOWED_ORIGINS.copy()
+if RAILWAY_PUBLIC_DOMAIN:
+    allowed_origins.append(f"https://{RAILWAY_PUBLIC_DOMAIN}")
+    # Also add with www subdomain
+    allowed_origins.append(f"https://www.{RAILWAY_PUBLIC_DOMAIN}")
+
+# Add specific Railway domain
+allowed_origins.append("https://accounting-backend-production-4381.up.railway.app")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS + ["https://accounting-backend-production-4381.up.railway.app"],  # Add Railway domain
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,9 +80,10 @@ def read_root(request: Request):
     Root endpoint that serves the frontend UI.
     """
     try:
+        logger.info(f"Serving index.html, templates directory: {BASE_DIR / 'templates'}")
         return templates.TemplateResponse("index.html", {"request": request})
     except Exception as e:
-        logging.getLogger(__name__).error(f"Error serving index.html: {str(e)}")
+        logger.error(f"Error serving index.html: {str(e)}")
         return {"message": "Error serving frontend. Please check logs.", "error": str(e)}
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -116,11 +132,17 @@ def health_check(db: Session = Depends(get_db)):
             },
             "environment": {
                 "debug": DEBUG,
-                "allowed_origins": ALLOWED_ORIGINS
+                "allowed_origins": allowed_origins,
+                "railway_info": {
+                    "public_domain": RAILWAY_PUBLIC_DOMAIN,
+                    "service_name": RAILWAY_SERVICE_NAME,
+                    "environment_name": RAILWAY_ENVIRONMENT_NAME,
+                    "project_name": RAILWAY_PROJECT_NAME
+                }
             }
         }
     except Exception as e:
-        logging.getLogger(__name__).error(f"Health check failed: {str(e)}")
+        logger.error(f"Health check failed: {str(e)}")
         return {
             "status": "unhealthy",
             "error": str(e)
@@ -133,15 +155,23 @@ async def startup_event():
     Create a default admin user if no users exist.
     This is for testing purposes only and should be removed in production.
     """
-    db = next(get_db())
-    if db.query(User).count() == 0:
-        from app.core.auth import get_password_hash
-        admin_user = User(
-            username="admin",
-            email="admin@example.com",
-            password_hash=get_password_hash("admin"),
-            is_active=True
-        )
-        db.add(admin_user)
-        db.commit()
-        logger.info("Created default admin user")
+    try:
+        logger.info("Starting application...")
+        logger.info(f"Railway environment: {RAILWAY_ENVIRONMENT_NAME}")
+        logger.info(f"Railway service: {RAILWAY_SERVICE_NAME}")
+        logger.info(f"Railway public domain: {RAILWAY_PUBLIC_DOMAIN}")
+        
+        db = next(get_db())
+        if db.query(User).count() == 0:
+            from app.core.auth import get_password_hash
+            admin_user = User(
+                username="admin",
+                email="admin@example.com",
+                password_hash=get_password_hash("admin"),
+                is_active=True
+            )
+            db.add(admin_user)
+            db.commit()
+            logger.info("Created default admin user")
+    except Exception as e:
+        logger.error(f"Error during startup: {str(e)}")
