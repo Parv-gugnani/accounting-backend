@@ -1,0 +1,92 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    font-weight: 500;
+}
+
+.table th {
+    background-color: #f1f1f1;
+}
+
+.nav-tabs .nav-link.active {
+    font-weight: 500;
+    border-bottom: 2px solid #0d6efd;
+}
+
+.entry-row {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    margin-bottom: 10px;
+}
+
+#dashboard {
+    margin-top: 20px;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.alert {
+    padding: 0.5rem 1rem;
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+}
+
+.remove-entry {
+    margin-top: 2px;
+}
+
+/* Balance colors */
+.balance-positive {
+    color: green;
+}
+
+.balance-negative {
+    color: red;
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+
+.toast {
+    background-color: #fff;
+    border-left: 4px solid #0d6efd;
+}
+
+.toast-error {
+    border-left-color: #dc3545;
+}
+
+.toast-success {
+    border-left-color: #198754;
+}
