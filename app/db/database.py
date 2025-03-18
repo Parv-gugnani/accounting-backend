@@ -2,13 +2,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
+import os
 
-# PostgreSQL connection URL
-SQLALCHEMY_DATABASE_URL = "postgresql://parv:postgres@localhost/accounting"
+# PostgreSQL connection URL - use environment variable if available
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://parv:postgres@localhost/accounting")
+
+# Handle Railway's Postgres connection string format
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Create SQLAlchemy engine with connection pooling
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    DATABASE_URL,
     poolclass=QueuePool,
     pool_size=5,
     max_overflow=10,
