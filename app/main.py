@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.database import engine, Base, get_db
 from app.api import users, accounts, transactions, auth
 from app.models.models import User
+from app.core.config import ALLOWED_ORIGINS, DEBUG
 
 # Configure logging
 logging.basicConfig(
@@ -34,7 +35,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict to your frontend domain
+    allow_origins=ALLOWED_ORIGINS,  # In production, restrict to your frontend domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

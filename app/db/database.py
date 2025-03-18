@@ -2,10 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
-import os
 
-# PostgreSQL connection URL - use environment variable if available
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://parv:postgres@localhost/accounting")
+from app.core.config import DATABASE_URL
 
 # Handle Railway's Postgres connection string format
 if DATABASE_URL.startswith("postgres://"):
