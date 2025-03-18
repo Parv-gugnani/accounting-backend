@@ -3,3 +3,37 @@
 2025-03-18 17:32:14,754 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
 2025-03-18 17:32:15,287 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
 2025-03-18 17:32:15,792 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-18 17:33:33,343 - accounting - INFO - Transaction INV-001 created successfully by user testuser with 2 entries
+2025-03-18 17:33:34,421 - accounting - INFO - Transaction INV-003 created successfully by user testuser with 2 entries
+2025-03-18 17:33:34,937 - accounting - INFO - Transaction INV-004 created successfully by user testuser with 2 entries
+2025-03-18 17:33:34,942 - accounting - INFO - Transaction 2 deleted successfully by user testuser
+2025-03-18 17:37:31,414 - accounting - INFO - Transaction INV-001 created successfully by user testuser with 2 entries
+2025-03-18 17:37:32,406 - accounting - INFO - Transaction INV-003 created successfully by user testuser with 2 entries
+2025-03-18 17:37:32,887 - accounting - INFO - Transaction INV-004 created successfully by user testuser with 2 entries
+2025-03-18 17:37:32,892 - accounting - INFO - Transaction 2 deleted successfully by user testuser
+2025-03-18 17:38:19,770 - accounting - INFO - Transaction INV-001 created successfully by user testuser with 2 entries
+2025-03-18 17:38:20,741 - accounting - INFO - Transaction INV-003 created successfully by user testuser with 2 entries
+2025-03-18 17:38:21,211 - accounting - INFO - Transaction INV-004 created successfully by user testuser with 2 entries
+2025-03-18 17:38:21,216 - accounting - INFO - Transaction 2 deleted successfully by user testuser
+2025-03-18 17:40:07,219 - accounting - INFO - Transaction INV-001 created successfully by user testuser with 2 entries
+2025-03-18 17:40:08,254 - accounting - INFO - Transaction INV-003 created successfully by user testuser with 2 entries
+2025-03-18 17:40:08,737 - accounting - INFO - Transaction INV-004 created successfully by user testuser with 2 entries
+2025-03-18 17:40:08,741 - accounting - INFO - Transaction 2 deleted successfully by user testuser
+2025-03-18 17:41:13,990 - accounting - INFO - Transaction INV-001 created successfully by user testuser with 2 entries
+2025-03-18 17:41:14,965 - accounting - INFO - Transaction INV-003 created successfully by user testuser with 2 entries
+2025-03-18 17:41:15,563 - accounting - INFO - Transaction INV-004 created successfully by user testuser with 2 entries
+2025-03-18 17:41:15,569 - accounting - INFO - Transaction 2 deleted successfully by user testuser
+2025-03-18 17:41:16,079 - accounting - INFO - Transaction MULTI-001 created successfully by user testuser with 3 entries
+2025-03-18 17:41:16,586 - accounting - ERROR - Transaction creation failed: Entry 1 is both debit and credit
+2025-03-18 17:41:57,618 - accounting - INFO - Transaction INV-001 created successfully by user testuser with 2 entries
+2025-03-18 17:41:58,584 - accounting - INFO - Transaction INV-003 created successfully by user testuser with 2 entries
+2025-03-18 17:41:59,062 - accounting - INFO - Transaction INV-004 created successfully by user testuser with 2 entries
+2025-03-18 17:41:59,066 - accounting - INFO - Transaction 2 deleted successfully by user testuser
+2025-03-18 17:41:59,570 - accounting - INFO - Transaction MULTI-001 created successfully by user testuser with 3 entries
+2025-03-18 17:42:00,049 - accounting - ERROR - Transaction creation failed: Entry 1 is both debit and credit
+2025-03-18 17:42:36,367 - accounting - INFO - Transaction INV-001 created successfully by user testuser with 2 entries
+2025-03-18 17:42:37,311 - accounting - INFO - Transaction INV-003 created successfully by user testuser with 2 entries
+2025-03-18 17:42:37,821 - accounting - INFO - Transaction INV-004 created successfully by user testuser with 2 entries
+2025-03-18 17:42:37,825 - accounting - INFO - Transaction 2 deleted successfully by user testuser
+2025-03-18 17:42:38,304 - accounting - INFO - Transaction MULTI-001 created successfully by user testuser with 3 entries
+2025-03-18 17:42:38,813 - accounting - ERROR - Transaction creation failed: Entry 1 is both debit and credit

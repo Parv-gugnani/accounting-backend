@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('transactions-tab').addEventListener('click', loadTransactions);
     document.getElementById('users-tab').addEventListener('click', loadUsers);
 
+    // Logout button event
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
     // Save buttons for modals
     saveAccountBtn.addEventListener('click', saveAccount);
     saveTransactionBtn.addEventListener('click', saveTransaction);
@@ -81,6 +84,33 @@ async function handleLogin(e) {
     } catch (error) {
         console.error('Login error:', error);
         showToast('Login failed. Please check your credentials.', 'error');
+    }
+}
+
+async function handleLogout() {
+    try {
+        // Call the logout endpoint
+        await fetch(`${API_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        // Clear token from localStorage
+        localStorage.removeItem('token');
+        token = '';
+        
+        // Redirect to login page
+        window.location.reload();
+        showToast('Logged out successfully', 'success');
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Even if the server request fails, we should still log out locally
+        localStorage.removeItem('token');
+        token = '';
+        window.location.reload();
     }
 }
 
@@ -410,25 +440,28 @@ async function updateAccountSelects() {
 async function loadUsers() {
     usersTable.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
 
-    const users = await apiRequest('/users/');
-
-    if (users) {
-        usersTable.innerHTML = '';
-
-        users.forEach(user => {
+    try {
+        // First get current user info
+        const currentUser = await apiRequest('/users/me');
+        
+        if (currentUser) {
+            usersTable.innerHTML = '';
+            
             const row = document.createElement('tr');
-
             row.innerHTML = `
-                <td>${user.id}</td>
-                <td>${user.username}</td>
-                <td>${user.email}</td>
+                <td>${currentUser.id}</td>
+                <td>${currentUser.username}</td>
+                <td>${currentUser.email}</td>
                 <td>
-                    <button class="btn btn-sm btn-info view-user" data-id="${user.id}">View</button>
+                    <button class="btn btn-sm btn-info view-user" data-id="${currentUser.id}">View</button>
                 </td>
             `;
-
+            
             usersTable.appendChild(row);
-        });
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+        usersTable.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading user data</td></tr>';
     }
 }
 

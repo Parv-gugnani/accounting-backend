@@ -3,3 +3,6 @@
 2025-03-18 17:32:14,754 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
 2025-03-18 17:32:15,287 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
 2025-03-18 17:32:15,792 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-18 17:41:16,586 - accounting - ERROR - Transaction creation failed: Entry 1 is both debit and credit
+2025-03-18 17:42:00,049 - accounting - ERROR - Transaction creation failed: Entry 1 is both debit and credit
+2025-03-18 17:42:38,813 - accounting - ERROR - Transaction creation failed: Entry 1 is both debit and credit

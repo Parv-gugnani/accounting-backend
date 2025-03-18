@@ -39,3 +39,10 @@ async def login_for_access_token(
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/logout")
+async def logout():
+    """
+    Logout endpoint - client-side will handle token removal.
+    """
+    return {"message": "Logged out successfully"}
