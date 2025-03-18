@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse, FileResponse
 import logging
 from sqlalchemy.orm import Session
 import os
@@ -63,7 +64,21 @@ def read_root(request: Request):
     """
     Root endpoint that serves the frontend UI.
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    try:
+        return templates.TemplateResponse("index.html", {"request": request})
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Error serving index.html: {str(e)}")
+        return {"message": "Error serving frontend. Please check logs.", "error": str(e)}
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """
+    Serve favicon to prevent 502 errors from favicon requests.
+    """
+    favicon_path = BASE_DIR / "static" / "img" / "favicon.ico"
+    if favicon_path.exists():
+        return FileResponse(favicon_path)
+    return JSONResponse(content={"message": "No favicon"})
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):

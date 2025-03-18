@@ -9,14 +9,15 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories
-RUN mkdir -p /app/app/static/css /app/app/static/js /app/app/templates
+RUN mkdir -p /app/app/static/css /app/app/static/js /app/app/static/img /app/app/templates
 
 # Copy application code
 COPY . .
 
-# Make sure the static and template directories exist
+# Make sure the static and template directories exist and have content
 RUN ls -la /app/app/static
 RUN ls -la /app/app/templates
+RUN ls -la /app/app/static/img || echo "No img directory"
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
