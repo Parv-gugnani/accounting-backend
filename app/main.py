@@ -37,7 +37,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # In production, restrict to your frontend domain
+    allow_origins=ALLOWED_ORIGINS + ["https://accounting-backend-production-4381.up.railway.app"],  # Add Railway domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
