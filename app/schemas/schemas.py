@@ -14,7 +14,7 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -23,7 +23,7 @@ class AccountBase(BaseModel):
     name: str
     account_type: str
     description: Optional[str] = None
-    
+
     @validator('account_type')
     def validate_account_type(cls, v):
         valid_types = ['asset', 'liability', 'equity', 'revenue', 'expense']
@@ -40,7 +40,7 @@ class AccountResponse(AccountBase):
     created_at: datetime
     updated_at: datetime
     balance: float = 0.0
-    
+
     class Config:
         from_attributes = True
 
@@ -50,7 +50,7 @@ class TransactionEntryBase(BaseModel):
     debit_amount: float = 0.0
     credit_amount: float = 0.0
     description: Optional[str] = None
-    
+
     @validator('debit_amount', 'credit_amount')
     def validate_amounts(cls, v):
         if v < 0:
@@ -63,7 +63,7 @@ class TransactionEntryCreate(TransactionEntryBase):
 class TransactionEntryResponse(TransactionEntryBase):
     id: int
     transaction_id: int
-    
+
     class Config:
         from_attributes = True
 
@@ -75,18 +75,18 @@ class TransactionBase(BaseModel):
 
 class TransactionCreate(TransactionBase):
     entries: List[TransactionEntryCreate]
-    
+
     @validator('entries')
     def validate_double_entry(cls, entries):
         if not entries or len(entries) < 2:
             raise ValueError('A transaction must have at least two entries')
-        
+
         total_debit = sum(entry.debit_amount for entry in entries)
         total_credit = sum(entry.credit_amount for entry in entries)
-        
+
         if round(total_debit, 2) != round(total_credit, 2):
             raise ValueError('Total debits must equal total credits')
-        
+
         return entries
 
 class TransactionResponse(TransactionBase):
@@ -95,7 +95,7 @@ class TransactionResponse(TransactionBase):
     created_at: datetime
     updated_at: datetime
     entries: List[TransactionEntryResponse]
-    
+
     class Config:
         from_attributes = True
 

@@ -23,9 +23,12 @@ RUN ls -la /app/app/static/img || echo "No img directory"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8090
+# Supabase credentials should be set via Railway environment variables
+# ENV SUPABASE_URL=your-supabase-url
+# ENV SUPABASE_KEY=your-supabase-key
 
 # Expose port - Railway will set PORT env var
 EXPOSE ${PORT}
 
-# Command to run the application with increased workers and timeout
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 4 --proxy-headers --timeout-keep-alive 75
+# Command to run the application with optimized settings for Railway
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 2 --proxy-headers --timeout-keep-alive 120 --limit-concurrency 20 --backlog 100
