@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text, exc
 import os
 import logging
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 def create_tables():
     max_retries = 5
     retry_delay = 2
-    
+
     for attempt in range(max_retries):
         try:
             logger.info(f"Attempting to create database tables (attempt {attempt+1}/{max_retries})")
@@ -126,18 +127,19 @@ def health_check():
             }
         }
     }
-    
+
     # Check database connection
     try:
         # Use SQLAlchemy to check database connection
         with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
+            result = conn.execute(text("SELECT 1"))
+            result.fetchone()
         health_status["database"] = "connected"
     except Exception as e:
         logger.error(f"Database health check failed: {str(e)}")
         health_status["database"] = "disconnected"
         health_status["status"] = "degraded"
-    
+
     # Check Supabase connection
     try:
         # Simple check to see if we can access Supabase
@@ -147,7 +149,7 @@ def health_check():
         logger.error(f"Supabase health check failed: {str(e)}")
         health_status["supabase"] = "disconnected"
         health_status["status"] = "degraded"
-    
+
     # Check if static files directory exists
     static_dir = Path("app/static")
     if static_dir.exists() and static_dir.is_dir():
@@ -156,7 +158,7 @@ def health_check():
         logger.error("Static files directory not found")
         health_status["static_files"] = "unavailable"
         health_status["status"] = "degraded"
-    
+
     # Check if templates directory exists
     templates_dir = Path("app/templates")
     if templates_dir.exists() and templates_dir.is_dir():
@@ -165,10 +167,10 @@ def health_check():
         logger.error("Templates directory not found")
         health_status["templates"] = "unavailable"
         health_status["status"] = "degraded"
-    
+
     # Return appropriate status code
     status_code = 200 if health_status["status"] == "ok" else 503
-    
+
     return JSONResponse(
         content=health_status,
         status_code=status_code
@@ -221,7 +223,7 @@ async def startup_event():
         logger.info(f"Railway environment: {RAILWAY_ENVIRONMENT_NAME}")
         logger.info(f"Railway service: {RAILWAY_SERVICE_NAME}")
         logger.info(f"Railway public domain: {RAILWAY_PUBLIC_DOMAIN}")
-        
+
         # Try to create the admin user, but don't fail if it doesn't work
         try:
             db = next(get_db())

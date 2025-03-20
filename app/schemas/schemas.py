@@ -18,6 +18,10 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+class UserInDB(UserResponse):
+    password_hash: str
+    updated_at: Optional[datetime] = None
+
 # Account schemas
 class AccountBase(BaseModel):
     name: str
@@ -44,6 +48,9 @@ class AccountResponse(AccountBase):
     class Config:
         from_attributes = True
 
+class AccountInDB(AccountResponse):
+    pass
+
 # Transaction Entry schemas
 class TransactionEntryBase(BaseModel):
     account_id: int
@@ -66,6 +73,9 @@ class TransactionEntryResponse(TransactionEntryBase):
 
     class Config:
         from_attributes = True
+
+class TransactionEntryInDB(TransactionEntryResponse):
+    pass
 
 # Transaction schemas
 class TransactionBase(BaseModel):
@@ -98,6 +108,12 @@ class TransactionResponse(TransactionBase):
 
     class Config:
         from_attributes = True
+
+class TransactionInDB(TransactionBase):
+    id: int
+    created_by_id: int
+    created_at: datetime
+    updated_at: datetime
 
 # Balance schema
 class AccountBalance(BaseModel):

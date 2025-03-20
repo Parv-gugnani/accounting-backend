@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Application info
+PROJECT_NAME = "Accounting Backend"
+VERSION = "0.1.0"
+
 # Database settings
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://parv:postgres@localhost/accounting")
 

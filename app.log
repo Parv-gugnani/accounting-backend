@@ -30,3 +30,86 @@ Traceback (most recent call last):
     version = _bcrypt.__about__.__version__
               ^^^^^^^^^^^^^^^^^
 AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-03-19 23:00:32,143 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-19 23:00:32,143 - app.main - INFO - Database tables created successfully
+2025-03-19 23:00:32,283 - app.main - INFO - Starting application...
+2025-03-19 23:00:32,283 - app.main - INFO - Railway environment: 
+2025-03-19 23:00:32,283 - app.main - INFO - Railway service: 
+2025-03-19 23:00:32,283 - app.main - INFO - Railway public domain: 
+2025-03-19 23:00:49,206 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/Users/Development/Projects/accounting-backend/venv/lib/python3.13/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-03-19 23:08:58,408 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-19 23:08:58,408 - app.main - INFO - Database tables created successfully
+2025-03-19 23:08:58,684 - app.main - INFO - Starting application...
+2025-03-19 23:08:58,684 - app.main - INFO - Railway environment: 
+2025-03-19 23:08:58,684 - app.main - INFO - Railway service: 
+2025-03-19 23:08:58,685 - app.main - INFO - Railway public domain: 
+2025-03-19 23:09:36,996 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-19 23:09:36,996 - app.main - INFO - Database tables created successfully
+2025-03-19 23:09:37,083 - app.main - INFO - Starting application...
+2025-03-19 23:09:37,083 - app.main - INFO - Railway environment: 
+2025-03-19 23:09:37,083 - app.main - INFO - Railway service: 
+2025-03-19 23:09:37,083 - app.main - INFO - Railway public domain: 
+2025-03-19 23:12:24,191 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-19 23:12:24,191 - app.main - INFO - Database tables created successfully
+2025-03-19 23:12:24,289 - app.main - INFO - Starting application...
+2025-03-19 23:12:24,289 - app.main - INFO - Railway environment: 
+2025-03-19 23:12:24,289 - app.main - INFO - Railway service: 
+2025-03-19 23:12:24,289 - app.main - INFO - Railway public domain: 
+2025-03-19 23:15:09,622 - accounting - INFO - Transaction TX-20250319174509 created successfully by user testuser_611dcd26 with 2 entries
+2025-03-20 12:18:19,700 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-20 12:18:19,701 - app.main - INFO - Database tables created successfully
+2025-03-20 12:18:19,800 - app.main - INFO - Starting application...
+2025-03-20 12:18:19,801 - app.main - INFO - Railway environment: 
+2025-03-20 12:18:19,801 - app.main - INFO - Railway service: 
+2025-03-20 12:18:19,801 - app.main - INFO - Railway public domain: 
+2025-03-20 12:18:54,679 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-20 12:18:54,680 - app.main - INFO - Database tables created successfully
+2025-03-20 12:18:54,746 - app.main - INFO - Starting application...
+2025-03-20 12:18:54,746 - app.main - INFO - Railway environment: 
+2025-03-20 12:18:54,746 - app.main - INFO - Railway service: 
+2025-03-20 12:18:54,746 - app.main - INFO - Railway public domain: 
+2025-03-20 14:46:44,345 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-20 14:46:44,346 - app.main - INFO - Database tables created successfully
+2025-03-20 14:46:44,447 - app.main - INFO - Starting application...
+2025-03-20 14:46:44,447 - app.main - INFO - Railway environment: 
+2025-03-20 14:46:44,447 - app.main - INFO - Railway service: 
+2025-03-20 14:46:44,447 - app.main - INFO - Railway public domain: 
+2025-03-20 14:48:05,707 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 14:48:06,737 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 14:48:11,287 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 14:51:30,950 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 14:52:32,823 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 14:55:55,680 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 14:55:56,556 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 14:55:56,755 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:19:37,594 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:19:44,169 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:19:53,628 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:19:56,615 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:19:57,432 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:20:03,934 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:20:04,597 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:20:04,756 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:20:04,915 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:20:05,068 - accounting - ERROR - Transaction creation failed: Entry 1 is neither debit nor credit
+2025-03-20 15:30:43,117 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-20 15:30:43,117 - app.main - INFO - Database tables created successfully
+2025-03-20 15:30:43,225 - app.main - INFO - Starting application...
+2025-03-20 15:30:43,225 - app.main - INFO - Railway environment: 
+2025-03-20 15:30:43,225 - app.main - INFO - Railway service: 
+2025-03-20 15:30:43,225 - app.main - INFO - Railway public domain: 
+2025-03-20 16:15:11,973 - accounting - INFO - Transaction Parvowiqhjrijhjhwqor created successfully by user admin with 2 entries
+2025-03-20 16:15:22,927 - app.main - INFO - Attempting to create database tables (attempt 1/5)
+2025-03-20 16:15:22,927 - app.main - INFO - Database tables created successfully
+2025-03-20 16:15:23,011 - app.main - INFO - Starting application...
+2025-03-20 16:15:23,011 - app.main - INFO - Railway environment: 
+2025-03-20 16:15:23,011 - app.main - INFO - Railway service: 
+2025-03-20 16:15:23,011 - app.main - INFO - Railway public domain: 
+2025-03-20 16:34:12,101 - accounting - INFO - Transaction EXP-2025-001 created successfully by user admin with 2 entries
+2025-03-20 16:36:45,916 - accounting - INFO - Transaction 21 deleted successfully by user admin
+2025-03-20 16:36:54,889 - accounting - ERROR - Transaction deletion failed: Transaction 21 not found

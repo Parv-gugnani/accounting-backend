@@ -187,52 +187,58 @@
                 </div>
                 <div class="modal-body">
                     <form id="addTransactionForm">
-                        <div class="mb-3">
-                            <label for="transactionReference" class="form-label">Reference</label>
-                            <input type="text" class="form-control" id="transactionReference" required>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="transactionReference" class="form-label">Reference</label>
+                                <input type="text" class="form-control" id="transactionReference" placeholder="Invoice #, Receipt #, etc." required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="transactionDate" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="transactionDate" required>
+                            </div>
                         </div>
+                        
                         <div class="mb-3">
                             <label for="transactionDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="transactionDescription" rows="2"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="transactionDate" class="form-label">Date</label>
-                            <input type="date" class="form-control" id="transactionDate" required>
+                            <input type="text" class="form-control" id="transactionDescription" placeholder="What is this transaction for?">
                         </div>
 
-                        <h6 class="mt-4">Transaction Entries</h6>
-                        <div id="entriesContainer">
-                            <div class="row entry-row mb-2">
-                                <div class="col-md-4">
-                                    <select class="form-control account-select" required>
+                        <div class="mb-3">
+                            <label for="transactionType" class="form-label">What are you doing?</label>
+                            <select class="form-control" id="transactionType">
+                                <option value="expense">Spending Money (Expense)</option>
+                                <option value="income">Receiving Money (Income)</option>
+                                <option value="transfer">Moving Money Between Accounts</option>
+                            </select>
+                        </div>
+
+                        <div id="simpleTransactionForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label id="mainAccountLabel" for="mainAccount" class="form-label">From Account</label>
+                                    <select class="form-control" id="mainAccount">
                                         <option value="">Select Account</option>
                                         <!-- Accounts will be loaded here -->
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <select class="form-control entry-type" required>
-                                        <option value="debit">Debit</option>
-                                        <option value="credit">Credit</option>
+                                <div class="col-md-6">
+                                    <label id="counterAccountLabel" for="counterAccount" class="form-label">To Account</label>
+                                    <select class="form-control" id="counterAccount">
+                                        <option value="">Select Account</option>
+                                        <!-- Accounts will be loaded here -->
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control entry-amount" placeholder="Amount" required>
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-danger btn-sm remove-entry">Remove</button>
-                                </div>
                             </div>
-                        </div>
-                        <button type="button" class="btn btn-info btn-sm mt-2" id="addEntryBtn">Add Entry</button>
-
-                        <div class="alert alert-info mt-3">
-                            <strong>Note:</strong> Total debits must equal total credits for double-entry bookkeeping.
+                            <div class="mb-3">
+                                <label for="transactionAmount" class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="transactionAmount" step="0.01" min="0.01" required>
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveTransactionBtn">Save</button>
+                    <button type="button" class="btn btn-primary" id="saveTransactionBtn">Save Transaction</button>
                 </div>
             </div>
         </div>

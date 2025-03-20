@@ -1,6 +1,6 @@
 // Global variables
 let token = '';
-const API_URL = window.location.origin;
+// No API_URL prefix needed - the endpoints are already at the root
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
@@ -38,12 +38,97 @@ document.addEventListener('DOMContentLoaded', () => {
     saveTransactionBtn.addEventListener('click', saveTransaction);
     saveUserBtn.addEventListener('click', saveUser);
 
-    // Add entry button for transaction form
-    addEntryBtn.addEventListener('click', addTransactionEntry);
+    // Add transaction button
+    const addTransactionBtn = document.getElementById('addTransactionBtn');
+    if (addTransactionBtn) {
+        addTransactionBtn.addEventListener('click', () => {
+            // Set default date to today
+            document.getElementById('transactionDate').valueAsDate = new Date();
 
-    // Initial entry row event listeners
-    setupEntryRowListeners(document.querySelector('.entry-row'));
+            // Set default transaction type to expense
+            const transactionType = document.getElementById('transactionType');
+            transactionType.value = 'expense';
+
+            // Load accounts first, then update the form
+            debugAndPopulateAccounts(); // Use the new direct debugging function
+        });
+    }
+
+    // Add event listener for transaction modal shown event
+    const addTransactionModal = document.getElementById('addTransactionModal');
+    if (addTransactionModal) {
+        addTransactionModal.addEventListener('shown.bs.modal', function() {
+            console.log("Transaction modal shown, populating accounts");
+            debugAndPopulateAccounts();
+        });
+    }
+
+    // Transaction type change
+    const transactionType = document.getElementById('transactionType');
+    if (transactionType) {
+        transactionType.addEventListener('change', handleTransactionTypeChange);
+    }
 });
+
+// API request function with authentication
+async function apiRequest(endpoint, method = 'GET', data = null) {
+    try {
+        // Don't add the /api prefix - the endpoints are already at the root
+        const url = endpoint.startsWith('http') ? endpoint : endpoint;
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        // Add token if available
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        // Add body for non-GET requests
+        if (data && method !== 'GET') {
+            options.body = JSON.stringify(data);
+        }
+
+        console.log(`Making ${method} request to ${url}`, options);
+        const response = await fetch(url, options);
+
+        // Special debug for accounts endpoint
+        if (endpoint === '/accounts/') {
+            console.log('Accounts endpoint response status:', response.status);
+            console.log('Accounts endpoint response headers:', [...response.headers.entries()]);
+        }
+
+        // Handle 401 Unauthorized
+        if (response.status === 401) {
+            console.error('Authentication failed. Redirecting to login.');
+            token = '';
+            localStorage.removeItem('token');
+            showLoginForm();
+            return null;
+        }
+
+        // Handle other errors
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.detail || `Error: ${response.status} ${response.statusText}`;
+            showToast(errorMessage, 'error');
+            console.error('API Error:', errorMessage);
+            return null;
+        }
+
+        // Parse and return response data
+        const responseData = await response.json();
+        console.log('API Response:', responseData);
+        return responseData;
+    } catch (error) {
+        console.error('API Request failed:', error);
+        showToast('Failed to connect to the server. Please try again.', 'error');
+        return null;
+    }
+}
 
 // Authentication Functions
 async function handleLogin(e) {
@@ -53,15 +138,17 @@ async function handleLogin(e) {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch(`${API_URL}/auth/token`, {
+        console.log('Attempting login with username:', username);
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const response = await fetch('/auth/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: new URLSearchParams({
-                'username': username,
-                'password': password,
-            }),
+            body: formData
         });
 
         console.log('Login response status:', response.status);
@@ -69,39 +156,38 @@ async function handleLogin(e) {
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             console.error('Login error details:', errorData);
-            throw new Error('Login failed: ' + (errorData.detail || 'Unknown error'));
+            showToast('Login failed: ' + (errorData.detail || 'Check your credentials'), 'error');
+            return;
         }
 
         const data = await response.json();
         console.log('Login successful, token received');
-        token = data.access_token;
 
-        // Save token to localStorage
+        // Save token
+        token = data.access_token;
         localStorage.setItem('token', token);
 
-        // Show dashboard and load accounts
+        // Show dashboard
         showDashboard();
+        showToast('Login successful!', 'success');
+
+        // Load initial data
+        loadAccounts();
     } catch (error) {
-        console.error('Login error:', error);
-        showToast('Login failed. Please check your credentials.', 'error');
+        console.error('Login failed:', error);
+        showToast('Failed to connect to the server. Please try again.', 'error');
     }
 }
 
 async function handleLogout() {
     try {
         // Call the logout endpoint
-        await fetch(`${API_URL}/auth/logout`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
-        
+        await apiRequest('/auth/logout', 'POST');
+
         // Clear token from localStorage
         localStorage.removeItem('token');
         token = '';
-        
+
         // Redirect to login page
         window.location.reload();
         showToast('Logged out successfully', 'success');
@@ -120,55 +206,22 @@ function showDashboard() {
     loadAccounts();
 }
 
-// API Request Helper
-async function apiRequest(endpoint, method = 'GET', body = null) {
-    const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-    };
-
-    const options = {
-        method,
-        headers,
-    };
-
-    if (body && (method === 'POST' || method === 'PUT')) {
-        options.body = JSON.stringify(body);
-    }
-
-    try {
-        const response = await fetch(`${API_URL}${endpoint}`, options);
-
-        if (response.status === 401) {
-            // Token expired or invalid
-            localStorage.removeItem('token');
-            window.location.reload();
-            return null;
-        }
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'API request failed');
-        }
-
-        if (response.status === 204) {
-            return true; // No content but successful
-        }
-
-        return await response.json();
-    } catch (error) {
-        showToast(error.message, 'error');
-        return null;
-    }
+function showLoginForm() {
+    dashboard.style.display = 'none';
+    loginForm.closest('.card').style.display = 'block';
 }
 
 // Account Functions
 async function loadAccounts() {
+    console.log('Starting to load accounts...');
     accountsTable.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
 
+    console.log('Making API request to /accounts/');
     const accounts = await apiRequest('/accounts/');
+    console.log('API response for accounts:', accounts);
 
     if (accounts) {
+        console.log(`Found ${accounts.length} accounts, updating table`);
         accountsTable.innerHTML = '';
 
         accounts.forEach(account => {
@@ -198,6 +251,9 @@ async function loadAccounts() {
 
         // Also update account selects in transaction modal
         updateAccountSelects();
+    } else {
+        console.error('Failed to load accounts or received empty accounts list');
+        accountsTable.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load accounts. Please check your connection and try again.</td></tr>';
     }
 }
 
@@ -206,27 +262,41 @@ async function saveAccount() {
     const account_type = document.getElementById('accountType').value;
     const description = document.getElementById('accountDescription').value;
 
+    // Basic validation
+    if (!name || !account_type) {
+        showToast('Please fill in all required fields.', 'error');
+        return;
+    }
+
     const accountData = {
         name,
         account_type,
         description
     };
 
+    console.log('Saving new account:', accountData);
     const result = await apiRequest('/accounts/', 'POST', accountData);
 
     if (result) {
         showToast('Account created successfully!', 'success');
+        
+        // Reload accounts in all places
         loadAccounts();
+        
+        // Also directly populate account selects for transaction form
+        debugAndPopulateAccounts();
 
         // Close modal and reset form
         const modal = bootstrap.Modal.getInstance(document.getElementById('addAccountModal'));
         modal.hide();
         document.getElementById('addAccountForm').reset();
+    } else {
+        showToast('Failed to create account. Please try again.', 'error');
     }
 }
 
 async function deleteAccount(id) {
-    if (confirm('Are you sure you want to delete this account?')) {
+    if (confirm('Are you sure you want to delete this account? This cannot be undone.')) {
         const result = await apiRequest(`/accounts/${id}`, 'DELETE');
 
         if (result) {
@@ -248,19 +318,14 @@ async function loadTransactions() {
         transactions.forEach(transaction => {
             const row = document.createElement('tr');
 
-            // Calculate total amount (sum of all entries)
-            let totalAmount = 0;
-            transaction.entries.forEach(entry => {
-                if (entry.entry_type === 'debit') {
-                    totalAmount += parseFloat(entry.amount);
-                }
-            });
+            // Calculate total amount (sum of all debits or credits)
+            const totalAmount = transaction.entries.reduce((sum, entry) => sum + entry.debit_amount, 0);
 
             row.innerHTML = `
                 <td>${transaction.id}</td>
                 <td>${transaction.reference_number}</td>
                 <td>${transaction.description || '-'}</td>
-                <td>${formatDate(transaction.date)}</td>
+                <td>${formatDate(transaction.transaction_date)}</td>
                 <td>${formatCurrency(totalAmount)}</td>
                 <td>
                     <button class="btn btn-sm btn-info view-transaction" data-id="${transaction.id}">View</button>
@@ -278,55 +343,169 @@ async function loadTransactions() {
     }
 }
 
-async function saveTransaction() {
-    const reference_number = document.getElementById('transactionReference').value;
-    const description = document.getElementById('transactionDescription').value;
-    const date = document.getElementById('transactionDate').value;
+// Handle transaction type change
+function handleTransactionTypeChange() {
+    console.log("Transaction type changed");
+    const transactionType = document.getElementById('transactionType').value;
+    const mainAccountLabel = document.getElementById('mainAccountLabel');
+    const counterAccountLabel = document.getElementById('counterAccountLabel');
 
-    // Get entries
-    const entryRows = document.querySelectorAll('.entry-row');
-    const entries = [];
+    console.log(`Changing labels for transaction type: ${transactionType}`);
 
-    let totalDebit = 0;
-    let totalCredit = 0;
+    // Update labels based on transaction type
+    if (transactionType === 'expense') {
+        mainAccountLabel.textContent = 'Pay From (Your Account)';
+        counterAccountLabel.textContent = 'Pay To (Expense Category)';
+    } else if (transactionType === 'income') {
+        mainAccountLabel.textContent = 'Receive To (Your Account)';
+        counterAccountLabel.textContent = 'Receive From (Income Source)';
+    } else if (transactionType === 'transfer') {
+        mainAccountLabel.textContent = 'From Account';
+        counterAccountLabel.textContent = 'To Account';
+    }
 
-    entryRows.forEach(row => {
-        const accountId = row.querySelector('.account-select').value;
-        const entryType = row.querySelector('.entry-type').value;
-        const amount = parseFloat(row.querySelector('.entry-amount').value);
+    // Repopulate accounts first to ensure we have all accounts loaded
+    debugAndPopulateAccounts();
+}
 
-        if (accountId && amount > 0) {
-            entries.push({
-                account_id: parseInt(accountId),
-                entry_type: entryType,
-                amount: amount
-            });
+function updateCounterAccountOptions(transactionType) {
+    console.log(`Updating counter account options for transaction type: ${transactionType}`);
+    const counterAccountSelect = document.getElementById('counterAccount');
 
-            if (entryType === 'debit') {
-                totalDebit += amount;
-            } else {
-                totalCredit += amount;
-            }
-        }
-    });
-
-    // Validate double-entry bookkeeping
-    if (Math.abs(totalDebit - totalCredit) > 0.001) {
-        showToast('Total debits must equal total credits for double-entry bookkeeping.', 'error');
+    if (!counterAccountSelect) {
+        console.error("Counter account select element not found");
         return;
     }
 
-    if (entries.length < 2) {
-        showToast('A transaction must have at least two entries.', 'error');
+    // Get all options from the main account select
+    const accounts = Array.from(document.querySelectorAll('#mainAccount option')).slice(1);
+    console.log(`Found ${accounts.length} accounts in main select for filtering`);
+
+    // Clear existing options except the first one
+    while (counterAccountSelect.options.length > 1) {
+        counterAccountSelect.remove(1);
+    }
+
+    // Filter accounts based on transaction type
+    let filteredAccounts = accounts;
+
+    if (transactionType === 'expense') {
+        // For expenses, counter account should be expense accounts
+        console.log("Filtering for expense accounts");
+        filteredAccounts = accounts.filter(opt =>
+            opt.dataset.type === 'expense');
+    } else if (transactionType === 'income') {
+        // For income, counter account should be revenue accounts
+        console.log("Filtering for revenue accounts");
+        filteredAccounts = accounts.filter(opt =>
+            opt.dataset.type === 'revenue');
+    }
+
+    console.log(`After filtering, found ${filteredAccounts.length} accounts for counter select`);
+
+    // Add filtered options to counter account select
+    filteredAccounts.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.textContent;
+        option.dataset.type = opt.dataset.type;
+        counterAccountSelect.appendChild(option);
+    });
+
+    // If no accounts were filtered, add a message
+    if (filteredAccounts.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = `No ${transactionType === 'expense' ? 'expense' : 'revenue'} accounts available - create one first`;
+        counterAccountSelect.appendChild(option);
+        console.log(`No ${transactionType} accounts found, added placeholder option`);
+    }
+}
+
+// Save transaction
+async function saveTransaction() {
+    const reference_number = document.getElementById('transactionReference').value;
+    const description = document.getElementById('transactionDescription').value;
+    const transaction_date = document.getElementById('transactionDate').value;
+    const transactionType = document.getElementById('transactionType').value;
+
+    const mainAccountId = document.getElementById('mainAccount').value;
+    const counterAccountId = document.getElementById('counterAccount').value;
+    const amount = parseFloat(document.getElementById('transactionAmount').value);
+
+    // Basic validation
+    if (!reference_number || !transaction_date || !mainAccountId || !counterAccountId || isNaN(amount) || amount <= 0) {
+        showToast('Please fill in all fields with valid values.', 'error');
         return;
+    }
+
+    let entries = [];
+
+    // Create entries based on transaction type
+    switch (transactionType) {
+        case 'expense':
+            // Debit expense account, credit asset account
+            entries = [
+                {
+                    account_id: parseInt(counterAccountId),
+                    debit_amount: amount,
+                    credit_amount: 0,
+                    description: description
+                },
+                {
+                    account_id: parseInt(mainAccountId),
+                    debit_amount: 0,
+                    credit_amount: amount,
+                    description: description
+                }
+            ];
+            break;
+
+        case 'income':
+            // Debit asset account, credit revenue account
+            entries = [
+                {
+                    account_id: parseInt(mainAccountId),
+                    debit_amount: amount,
+                    credit_amount: 0,
+                    description: description
+                },
+                {
+                    account_id: parseInt(counterAccountId),
+                    debit_amount: 0,
+                    credit_amount: amount,
+                    description: description
+                }
+            ];
+            break;
+
+        case 'transfer':
+            // Transfer between accounts
+            entries = [
+                {
+                    account_id: parseInt(counterAccountId),
+                    debit_amount: amount,
+                    credit_amount: 0,
+                    description: description
+                },
+                {
+                    account_id: parseInt(mainAccountId),
+                    debit_amount: 0,
+                    credit_amount: amount,
+                    description: description
+                }
+            ];
+            break;
     }
 
     const transactionData = {
         reference_number,
         description,
-        date,
+        transaction_date,
         entries
     };
+
+    console.log('Sending transaction data:', transactionData);
 
     const result = await apiRequest('/transactions/', 'POST', transactionData);
 
@@ -338,16 +517,11 @@ async function saveTransaction() {
         const modal = bootstrap.Modal.getInstance(document.getElementById('addTransactionModal'));
         modal.hide();
         document.getElementById('addTransactionForm').reset();
-
-        // Reset entries to just one
-        const entriesContainer = document.getElementById('entriesContainer');
-        entriesContainer.innerHTML = '';
-        addTransactionEntry();
     }
 }
 
 async function deleteTransaction(id) {
-    if (confirm('Are you sure you want to delete this transaction?')) {
+    if (confirm('Are you sure you want to delete this transaction? This cannot be undone.')) {
         const result = await apiRequest(`/transactions/${id}`, 'DELETE');
 
         if (result) {
@@ -357,111 +531,35 @@ async function deleteTransaction(id) {
     }
 }
 
-function addTransactionEntry() {
-    const entriesContainer = document.getElementById('entriesContainer');
-
-    const entryRow = document.createElement('div');
-    entryRow.className = 'row entry-row mb-2';
-
-    entryRow.innerHTML = `
-        <div class="col-md-4">
-            <select class="form-control account-select" required>
-                <option value="">Select Account</option>
-                <!-- Accounts will be loaded here -->
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select class="form-control entry-type" required>
-                <option value="debit">Debit</option>
-                <option value="credit">Credit</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <input type="number" class="form-control entry-amount" placeholder="Amount" required>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-danger btn-sm remove-entry">Remove</button>
-        </div>
-    `;
-
-    entriesContainer.appendChild(entryRow);
-
-    // Setup event listeners for the new row
-    setupEntryRowListeners(entryRow);
-
-    // Update account options
-    updateAccountSelects();
-}
-
-function setupEntryRowListeners(row) {
-    const removeBtn = row.querySelector('.remove-entry');
-    if (removeBtn) {
-        removeBtn.addEventListener('click', function() {
-            // Only remove if there's more than one entry
-            if (document.querySelectorAll('.entry-row').length > 1) {
-                row.remove();
-            } else {
-                showToast('At least one entry is required.', 'error');
-            }
-        });
-    }
-}
-
-async function updateAccountSelects() {
-    const accounts = await apiRequest('/accounts/');
-
-    if (accounts) {
-        const accountSelects = document.querySelectorAll('.account-select');
-
-        accountSelects.forEach(select => {
-            // Save current value
-            const currentValue = select.value;
-
-            // Clear options except the first one
-            select.innerHTML = '<option value="">Select Account</option>';
-
-            // Add account options
-            accounts.forEach(account => {
-                const option = document.createElement('option');
-                option.value = account.id;
-                option.textContent = `${account.name} (${account.account_type})`;
-                select.appendChild(option);
-            });
-
-            // Restore selected value if it exists
-            if (currentValue) {
-                select.value = currentValue;
-            }
-        });
-    }
-}
-
 // User Functions
 async function loadUsers() {
     usersTable.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
 
-    try {
-        // First get current user info
-        const currentUser = await apiRequest('/users/me');
-        
-        if (currentUser) {
-            usersTable.innerHTML = '';
-            
+    const users = await apiRequest('/users/');
+
+    if (users) {
+        usersTable.innerHTML = '';
+
+        users.forEach(user => {
             const row = document.createElement('tr');
+
             row.innerHTML = `
-                <td>${currentUser.id}</td>
-                <td>${currentUser.username}</td>
-                <td>${currentUser.email}</td>
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.email}</td>
                 <td>
-                    <button class="btn btn-sm btn-info view-user" data-id="${currentUser.id}">View</button>
+                    <button class="btn btn-sm btn-info view-user" data-id="${user.id}">View</button>
+                    <button class="btn btn-sm btn-danger delete-user" data-id="${user.id}">Delete</button>
                 </td>
             `;
-            
+
             usersTable.appendChild(row);
-        }
-    } catch (error) {
-        console.error('Error loading users:', error);
-        usersTable.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading user data</td></tr>';
+        });
+
+        // Add event listeners to buttons
+        document.querySelectorAll('.delete-user').forEach(btn => {
+            btn.addEventListener('click', (e) => deleteUser(e.target.dataset.id));
+        });
     }
 }
 
@@ -493,7 +591,8 @@ async function saveUser() {
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'USD',
+        minimumFractionDigits: 2
     }).format(amount);
 }
 
@@ -504,41 +603,230 @@ function formatDate(dateString) {
 
 function showToast(message, type = 'info') {
     // Create toast container if it doesn't exist
-    let toastContainer = document.querySelector('.toast-container');
+    let toastContainer = document.getElementById('toast-container');
+
     if (!toastContainer) {
         toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container';
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
         document.body.appendChild(toastContainer);
     }
 
     // Create toast element
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast ${type === 'error' ? 'toast-error' : type === 'success' ? 'toast-success' : ''}`;
-    toastEl.setAttribute('role', 'alert');
-    toastEl.setAttribute('aria-live', 'assertive');
-    toastEl.setAttribute('aria-atomic', 'true');
+    const toastId = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
+    toast.id = toastId;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
 
-    toastEl.innerHTML = `
-        <div class="toast-header">
-            <strong class="me-auto">${type === 'error' ? 'Error' : 'Notification'}</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-            ${message}
+    // Create toast content
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     `;
 
-    toastContainer.appendChild(toastEl);
+    // Add toast to container
+    toastContainer.appendChild(toast);
 
-    // Initialize and show the toast
-    const toast = new bootstrap.Toast(toastEl, {
+    // Initialize and show toast
+    const bsToast = new bootstrap.Toast(toast, {
         autohide: true,
         delay: 5000
     });
-    toast.show();
+
+    bsToast.show();
 
     // Remove toast after it's hidden
-    toastEl.addEventListener('hidden.bs.toast', function() {
-        toastEl.remove();
+    toast.addEventListener('hidden.bs.toast', function () {
+        toast.remove();
+    });
+}
+
+function updateAccountSelects() {
+    return new Promise((resolve, reject) => {
+        // Get all accounts
+        console.log("Fetching accounts...");
+        apiRequest('/accounts/').then(accounts => {
+            console.log("Accounts received:", accounts);
+            if (!accounts) {
+                console.error("No accounts received");
+                showToast('Failed to load accounts. Please check your connection.', 'error');
+                return reject();
+            }
+
+            // Update all account selects in the transaction form
+            const mainAccountSelect = document.getElementById('mainAccount');
+            const counterAccountSelect = document.getElementById('counterAccount');
+
+            console.log("Main account select:", mainAccountSelect);
+            console.log("Counter account select:", counterAccountSelect);
+
+            if (!mainAccountSelect || !counterAccountSelect) {
+                console.error("Account select elements not found in the DOM");
+                return reject();
+            }
+
+            // Clear existing options except the first one
+            if (mainAccountSelect) {
+                while (mainAccountSelect.options.length > 1) {
+                    mainAccountSelect.remove(1);
+                }
+            }
+
+            if (counterAccountSelect) {
+                while (counterAccountSelect.options.length > 1) {
+                    counterAccountSelect.remove(1);
+                }
+            }
+
+            // Add account options
+            if (accounts && Array.isArray(accounts) && accounts.length > 0) {
+                accounts.forEach(account => {
+                    console.log("Adding account:", account);
+
+                    // Create option for main account select
+                    if (mainAccountSelect) {
+                        const mainOption = document.createElement('option');
+                        mainOption.value = account.id;
+                        mainOption.textContent = `${account.name} (${account.account_type})`;
+                        mainOption.dataset.type = account.account_type;
+                        mainAccountSelect.appendChild(mainOption);
+                    }
+
+                    // Create separate option for counter account select
+                    if (counterAccountSelect) {
+                        const counterOption = document.createElement('option');
+                        counterOption.value = account.id;
+                        counterOption.textContent = `${account.name} (${account.account_type})`;
+                        counterOption.dataset.type = account.account_type;
+                        counterAccountSelect.appendChild(counterOption);
+                    }
+                });
+
+                // If transaction type is set, update counter account options
+                const transactionType = document.getElementById('transactionType');
+                if (transactionType && transactionType.value) {
+                    updateCounterAccountOptions(transactionType.value);
+                }
+
+                console.log("Account options updated");
+                resolve();
+            } else {
+                console.error("No accounts available or accounts not in expected format:", accounts);
+                showToast('No accounts available. Please create an account first.', 'warning');
+
+                // Add a default option to show there are no accounts
+                if (mainAccountSelect) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No accounts available - create an account first";
+                    mainAccountSelect.appendChild(option);
+                }
+
+                if (counterAccountSelect) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No accounts available - create an account first";
+                    counterAccountSelect.appendChild(option);
+                }
+
+                resolve();
+            }
+        }).catch(error => {
+            console.error("Error fetching accounts:", error);
+            showToast('Error loading accounts. Please try again.', 'error');
+            reject(error);
+        });
+    });
+}
+
+// Add this function to directly debug and populate account selects
+function debugAndPopulateAccounts() {
+    console.log("Starting direct account debug and population");
+
+    // Make a direct fetch call to the accounts endpoint
+    fetch('/accounts/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        console.log("Direct accounts fetch response status:", response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(accounts => {
+        console.log("Direct accounts fetch result:", accounts);
+
+        // Get the select elements
+        const mainAccountSelect = document.getElementById('mainAccount');
+        const counterAccountSelect = document.getElementById('counterAccount');
+
+        if (!mainAccountSelect || !counterAccountSelect) {
+            console.error("Could not find account select elements");
+            return;
+        }
+
+        // Clear existing options except the first one
+        while (mainAccountSelect.options.length > 1) {
+            mainAccountSelect.remove(1);
+        }
+
+        while (counterAccountSelect.options.length > 1) {
+            counterAccountSelect.remove(1);
+        }
+
+        // Check if accounts is an array and has items
+        if (!Array.isArray(accounts) || accounts.length === 0) {
+            console.error("No accounts found or accounts is not an array:", accounts);
+
+            // Add placeholder options
+            const noAccountsOption = document.createElement('option');
+            noAccountsOption.value = "";
+            noAccountsOption.textContent = "No accounts available - create an account first";
+
+            mainAccountSelect.appendChild(noAccountsOption.cloneNode(true));
+            counterAccountSelect.appendChild(noAccountsOption.cloneNode(true));
+
+            return;
+        }
+
+        // Add accounts to both selects
+        accounts.forEach(account => {
+            // Create option for main account
+            const mainOption = document.createElement('option');
+            mainOption.value = account.id;
+            mainOption.textContent = `${account.name} (${account.account_type})`;
+            mainOption.dataset.type = account.account_type;
+            mainAccountSelect.appendChild(mainOption);
+
+            // Create option for counter account
+            const counterOption = document.createElement('option');
+            counterOption.value = account.id;
+            counterOption.textContent = `${account.name} (${account.account_type})`;
+            counterOption.dataset.type = account.account_type;
+            counterAccountSelect.appendChild(counterOption);
+        });
+
+        console.log("Account selects populated directly");
+
+        // Update counter account options based on transaction type
+        const transactionType = document.getElementById('transactionType');
+        if (transactionType) {
+            updateCounterAccountOptions(transactionType.value);
+        }
+    })
+    .catch(error => {
+        console.error("Error in direct account fetch:", error);
     });
 }
